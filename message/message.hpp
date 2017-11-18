@@ -19,9 +19,9 @@ public:
 	message(::std::string content);	//assumed to be valid email message; throws if it isn't
 
 	//shortcut access to popular header fields
-	::std::string to() const;
-	::std::string from() const;
-	::std::string subject() const;
+    ::boost::string_view to() const;
+    ::boost::string_view from() const;
+    ::boost::string_view subject() const;
 
 	header header() const;
 	body body() const;
@@ -41,24 +41,25 @@ private:
 	header h_;
 	body b_;
 	::boost::string_view buf_view_;	//one or the other of this and buffer_, not both
-	::std::string buffer_;
+	::std::string buffer_;	//used only if instance created outside of a header
 };
 
 //header field
 class field
 {
-	::std::string name() const;
-	::std::string value() const;
+    ::boost::string_view name() const;
+    ::boost::string_view value() const;
 private:
 	::boost::string_view name_;
 	::boost::string_view value_;
-	::std::string buffer_;	//used only if created outside of a header
+	::std::string buffer_;	//used only if instance created outside of a header
 };
 
 //collection of header fields
 class header
 {
-
+public:
+    ::std::string operator[](::std::string name);
 private:
 	::std::vector<field> fields_;
 };
