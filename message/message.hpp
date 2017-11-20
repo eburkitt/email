@@ -16,15 +16,18 @@ class body;
 class message
 {
 public:
+    //ctor for existing off-the-wire message
 	message(::std::string content);	//assumed to be valid email message; throws if it isn't
+    //ctor for creating message from parts
+    message(header header, body body);  //
 
 	//shortcut access to popular header fields
     ::boost::string_view to() const;
     ::boost::string_view from() const;
     ::boost::string_view subject() const;
 
-	header header() const;
-	body body() const;
+	header const &header() const { return e_.header(); }
+	body const &body() const { return e_.body(); }
 
 private:
 	entity e_;
@@ -35,20 +38,26 @@ private:
 class entity
 {
 public:
-	entity(::boost::string_view content);
+    entity(header header, body body);
+    entity(header header);
+    entity(body body);
+
+    header const &header() const { return h_; }
+    body const &body() const { return b_; }
 
 private:
 	header h_;
 	body b_;
-	::boost::string_view buf_view_;	//one or the other of this and buffer_, not both
-	::std::string buffer_;	//used only if instance created outside of a header
+    ::std::string buffer_;	//used only if instance created outside of a header
 };
 
 //header field
 class field
 {
+public:
     ::boost::string_view name() const;
     ::boost::string_view value() const;
+
 private:
 	::boost::string_view name_;
 	::boost::string_view value_;
@@ -59,7 +68,14 @@ private:
 class header
 {
 public:
+    //default ctor; fields added via operator[]
+    header();
+    //TODO: ctor taking fields, or vector or map of name/values
+    //view ctor
+    header(::boost::string_view content);
+
     ::std::string operator[](::std::string name);
+
 private:
 	::std::vector<field> fields_;
 };
@@ -69,7 +85,9 @@ private:
 class body
 {
 public:
-	body(::boost::string_view content, ::boost::string_view content_type);
+    //view ctor
+	body(::boost::string_view content);
+    //TODO: how to construct from pieces
 
 private:
 	::std::vector<entity> content_;
