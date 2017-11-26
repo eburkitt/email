@@ -14,5 +14,6 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <boost/utility/string_view.hpp> 

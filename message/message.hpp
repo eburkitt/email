@@ -8,7 +8,13 @@
 namespace els {
 namespace email {
 
-class header;
+enum content_transfer_encoding
+{
+    cte_7bit, cte_quotedprintable, cte_base64
+};
+
+using octets_t = ::std::vector<unsigned char>;
+
 class entity;
 class body;
 
@@ -17,9 +23,9 @@ class message
 {
 public:
     //ctor for existing off-the-wire message
-	message(::std::string content);	//assumed to be valid email message; throws if it isn't
+    explicit message(::std::string content);    //assumed to be valid email message; throws if it isn't
     //ctor for creating message from parts
-    message(header header, body body);  //
+    message(header header, body body);
 
 	//shortcut access to popular header fields
     ::boost::string_view to() const;
@@ -30,6 +36,8 @@ public:
 	body const &body() const { return e_.body(); }
 
 private:
+    //TODO for a view instance, e_ should be constructed from buffer_
+    //after the latter is initialized from content
 	entity e_;
 	::std::string buffer_;
 };
@@ -38,9 +46,11 @@ private:
 class entity
 {
 public:
+    //view ctor
+    explicit entity(::boost::string_view content);
     entity(header header, body body);
-    entity(header header);
-    entity(body body);
+    explicit entity(header header);
+    explicit entity(body body);
 
     header const &header() const { return h_; }
     body const &body() const { return b_; }
@@ -48,7 +58,7 @@ public:
 private:
 	header h_;
 	body b_;
-    ::std::string buffer_;	//used only if instance created outside of a header
+    ::std::string buffer_;	//used only if instance created outside of a body
 };
 
 //header field
@@ -68,16 +78,24 @@ private:
 class header
 {
 public:
-    //default ctor; fields added via operator[]
-    header();
+	using fields_t = ::std::vector<field>;
+    //default ctor; produces empty header
+//    header();
     //TODO: ctor taking fields, or vector or map of name/values
     //view ctor
-    header(::boost::string_view content);
+    explicit header(::boost::string_view content);
 
-    ::std::string operator[](::std::string name);
+	//returns single named field; first if there are multiple w/ same name
+	::boost::string_view operator[](char const *name) const;
+    ::boost::string_view operator[](::std::string name) const;
+    ::boost::string_view operator[](::boost::string_view name) const;
+	fields_t fields(char const *name) const;
+    fields_t fields(::std::string name) const;
+    fields_t fields(boost::string_view name) const;
 
 private:
-	::std::vector<field> fields_;
+    using fields_t_p = ::std::shared_ptr<fields_t>;
+	fields_t_p fields_;
 };
 
 //collection of multi-part message parts, or body of non-multi-part message
@@ -85,12 +103,28 @@ private:
 class body
 {
 public:
+    using entities_t = ::std::vector<entity>;
+    //default ctor; produces empty body
+//    body();
     //view ctor
-	body(::boost::string_view content);
-    //TODO: how to construct from pieces
+	explicit body(::boost::string_view content);
+    //from-content ctor
+    explicit body(::std::string content);
+
+    //construct specific body types from supplied data
+    static body octet_stream(octets_t data, content_transfer_encoding cte);
+    //text() will always use subtype "plain"
+    static body text(::std::string data /*,char encoding, content transfer encoding*/);
+    //all following will be base64 encoded
+    static body image(octets_t data, ::std::string subtype);
+    static body audio(octets_t data, ::std::string subtype);
+    static body video(octets_t data, ::std::string subtype);
+    static body application(octets_t data, ::std::string subtype);
 
 private:
-	::std::vector<entity> content_;
+    using entities_t_p = ::std::shared_ptr<entities_t>;
+	entities_t_p content_;
+    ::std::string buffer_;	//used only if instance created by from-content ctor
 };
 
 }	//namespace email
