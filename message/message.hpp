@@ -10,7 +10,7 @@ namespace email {
 
 enum content_transfer_encoding
 {
-    cte_7bit, cte_quotedprintable, cte_base64
+    cte_7bit, cte_qprintable, cte_base64
 };
 
 using octets_t = ::std::vector<unsigned char>;
@@ -32,13 +32,11 @@ public:
     ::boost::string_view from() const;
     ::boost::string_view subject() const;
 
-	header const &header() const { return e_.header(); }
-	body const &body() const { return e_.body(); }
+	header const &header() const { return e_->header(); }
+	body const &body() const { return e_->body(); }
 
 private:
-    //TODO for a view instance, e_ should be constructed from buffer_
-    //after the latter is initialized from content
-	entity e_;
+	::std::shared_ptr<entity> e_;
 	::std::string buffer_;
 };
 
@@ -94,8 +92,8 @@ public:
     fields_t fields(boost::string_view name) const;
 
 private:
-    using fields_t_p = ::std::shared_ptr<fields_t>;
-	fields_t_p fields_;
+    using fields_p_t = ::std::shared_ptr<fields_t>;
+	fields_p_t fields_;
 };
 
 //collection of multi-part message parts, or body of non-multi-part message
@@ -122,8 +120,8 @@ public:
     static body application(octets_t data, ::std::string subtype);
 
 private:
-    using entities_t_p = ::std::shared_ptr<entities_t>;
-	entities_t_p content_;
+    using entities_p_t = ::std::shared_ptr<entities_t>;
+	entities_p_t content_;
     ::std::string buffer_;	//used only if instance created by from-content ctor
 };
 

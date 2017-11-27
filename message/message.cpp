@@ -2,9 +2,11 @@
 
 #include "message.hpp"
 
+using namespace els::email;
+
 els::email::message::message(::std::string content)
 : buffer_(content)
-, e_(::boost::string_view(content))
+
 {
-    //complete
+    e_.swap(::std::make_shared(entity(buffer_)));
 }
