@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <boost/utility/string_view.hpp> 
 
@@ -16,6 +17,7 @@ enum content_transfer_encoding
 using octets_t = ::std::vector<unsigned char>;
 
 class entity;
+class header;
 class body;
 
 //an RFC2822 et seq. email message
@@ -54,8 +56,8 @@ public:
     body const &body() const { return b_; }
 
 private:
-	header h_;
-	body b_;
+	class header h_;
+	class body b_;
     ::std::string buffer_;	//used only if instance created outside of a body
 };
 
@@ -78,15 +80,16 @@ class header
 public:
 	using fields_t = ::std::vector<field>;
     //default ctor; produces empty header
-//    header();
+    header();
     //TODO: ctor taking fields, or vector or map of name/values
     //view ctor
     explicit header(::boost::string_view content);
 
-	//returns single named field; first if there are multiple w/ same name
-	::boost::string_view operator[](char const *name) const;
-    ::boost::string_view operator[](::std::string name) const;
-    ::boost::string_view operator[](::boost::string_view name) const;
+	//return single named field; first if there are multiple w/ same name
+	::std::string operator[](char const *name) const;
+	::std::string operator[](::std::string name) const;
+	::std::string operator[](::boost::string_view name) const;
+	//return collection of all named fields
 	fields_t fields(char const *name) const;
     fields_t fields(::std::string name) const;
     fields_t fields(boost::string_view name) const;
@@ -103,7 +106,7 @@ class body
 public:
     using entities_t = ::std::vector<entity>;
     //default ctor; produces empty body
-//    body();
+    body();
     //view ctor
 	explicit body(::boost::string_view content);
     //from-content ctor
