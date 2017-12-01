@@ -47,7 +47,7 @@ class entity
 {
 public:
     //view ctor
-    explicit entity(::boost::string_view content);
+    entity(::boost::string_view content, ::std::string buffer);
     entity(header header, body body);
     explicit entity(header header);
     explicit entity(body body);
@@ -58,20 +58,21 @@ public:
 private:
 	class header h_;
 	class body b_;
-    ::std::string buffer_;	//used only if instance created outside of a body
+    ::std::string buffer_;
 };
 
 //header field
 class field
 {
 public:
+	//ctors??
     ::boost::string_view name() const;
     ::boost::string_view value() const;
 
 private:
 	::boost::string_view name_;
 	::boost::string_view value_;
-	::std::string buffer_;	//used only if instance created outside of a header
+	::std::string buffer_;
 };
 
 //collection of header fields
@@ -83,12 +84,16 @@ public:
     header();
     //TODO: ctor taking fields, or vector or map of name/values
     //view ctor
-    explicit header(::boost::string_view content);
+    header(::boost::string_view content, ::std::string buffer);
 
 	//return single named field; first if there are multiple w/ same name
 	::std::string operator[](char const *name) const;
 	::std::string operator[](::std::string name) const;
 	::std::string operator[](::boost::string_view name) const;
+
+	class field field(char const *name) const;
+	class field field(::std::string name) const;
+	class field field(boost::string_view name) const;
 	//return collection of all named fields
 	fields_t fields(char const *name) const;
     fields_t fields(::std::string name) const;
@@ -108,7 +113,7 @@ public:
     //default ctor; produces empty body
     body();
     //view ctor
-	explicit body(::boost::string_view content);
+	body(::boost::string_view content, ::std::string buffer);
     //from-content ctor
     explicit body(::std::string content);
 
@@ -125,7 +130,7 @@ public:
 private:
     using entities_p_t = ::std::shared_ptr<entities_t>;
 	entities_p_t content_;
-    ::std::string buffer_;	//used only if instance created by from-content ctor
+    ::std::string buffer_;
 };
 
 }	//namespace email
