@@ -35,5 +35,8 @@
     <ClCompile Include="message_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
