@@ -8,7 +8,10 @@
 els::email::message::message(::std::string content)
 : buffer_(content)
 {
-    e_.swap(::std::make_shared<entity>(boost::string_view(buffer_)));
+    //NB - make_shared() as parameter to swap() makes CLion's editor complain
+    //"expression must be an lvalue"
+    auto x = ::std::make_shared<entity>(buffer_.get_view(), buffer_);
+    e_.swap(x);
 }
 
 els::email::message::message(els::email::header header, els::email::body body)
@@ -18,7 +21,7 @@ els::email::message::message(els::email::header header, els::email::body body)
 }
 
 /*===================================entity===================================*/
-els::email::entity::entity(::boost::string_view content, ::std::string buffer)
+els::email::entity::entity(::boost::string_view content, ::els::util::shared_buffer buffer)
 : buffer_(buffer)
 {
 	static const char const * BLANK_LINE = "\r\n\r\n";
@@ -27,7 +30,8 @@ els::email::entity::entity(::boost::string_view content, ::std::string buffer)
 	h_ = els::email::header(content.substr(0u, blank), buffer_);
 	if (blank != content.npos)
 	{
-		b_ = els::email::body(content.substr(blank + 2u), buffer_);	//skip leading \r\n in remainder
+        //skip leading \r\n in remainder
+		b_ = els::email::body(content.substr(blank + 2u), buffer_);
 	}	//if
 }
 
@@ -39,8 +43,12 @@ els::email::header::header()
 	//complete
 }
 
-els::email::header::header(::boost::string_view content, ::std::string buffer)
+els::email::header::header(::boost::string_view content, ::els::util::shared_buffer buffer)
 {
 }
 
 /*====================================body====================================*/
+els::email::body::body(::boost::string_view content, ::els::util::shared_buffer buffer)
+{
+
+}

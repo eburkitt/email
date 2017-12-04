@@ -6,6 +6,8 @@
 
 #include <boost/utility/string_view.hpp> 
 
+#include "shared_buffer.hpp"
+
 namespace els {
 namespace email {
 
@@ -39,7 +41,7 @@ public:
 
 private:
 	::std::shared_ptr<entity> e_;
-	::std::string buffer_;
+	::els::util::shared_buffer buffer_;
 };
 
 //email message, as well as body component of a multi-part message
@@ -47,7 +49,7 @@ class entity
 {
 public:
     //view ctor
-    entity(::boost::string_view content, ::std::string buffer);
+    entity(::boost::string_view content, ::els::util::shared_buffer buffer);
     entity(header header, body body);
     explicit entity(header header);
     explicit entity(body body);
@@ -58,7 +60,7 @@ public:
 private:
 	class header h_;
 	class body b_;
-    ::std::string buffer_;
+    ::els::util::shared_buffer buffer_;
 };
 
 //header field
@@ -84,7 +86,7 @@ public:
     header();
     //TODO: ctor taking fields, or vector or map of name/values
     //view ctor
-    header(::boost::string_view content, ::std::string buffer);
+    header(::boost::string_view content, ::els::util::shared_buffer buffer);
 
 	//return single named field; first if there are multiple w/ same name
 	::std::string operator[](char const *name) const;
@@ -113,7 +115,7 @@ public:
     //default ctor; produces empty body
     body();
     //view ctor
-	body(::boost::string_view content, ::std::string buffer);
+	body(::boost::string_view content, ::els::util::shared_buffer buffer);
     //from-content ctor
     explicit body(::std::string content);
 
@@ -130,7 +132,7 @@ public:
 private:
     using entities_p_t = ::std::shared_ptr<entities_t>;
 	entities_p_t content_;
-    ::std::string buffer_;
+    ::els::util::shared_buffer buffer_;
 };
 
 }	//namespace email
