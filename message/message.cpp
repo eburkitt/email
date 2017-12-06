@@ -30,6 +30,10 @@ els::email::entity::entity(::boost::string_view content, ::els::util::shared_buf
 	h_ = els::email::header(content.substr(0u, blank), buffer_);
 	if (blank != content.npos)
 	{
+		auto content_type = h_.field("content-type");
+//		if (content_type) URHERE - check content_type for existence, and for "subvalues"
+//		of "multipart/mixed" and "boundary=xx". If found, call body ctor taking boundary,
+//		passing xx
         //skip leading \r\n in remainder
 		b_ = els::email::body(content.substr(blank + 2u), buffer_);
 	}	//if
@@ -49,6 +53,7 @@ els::email::header::header(::boost::string_view content, ::els::util::shared_buf
 
 /*====================================body====================================*/
 els::email::body::body(::boost::string_view content, ::els::util::shared_buffer buffer)
+: buffer_(buffer)
 {
 
 }
