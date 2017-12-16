@@ -25,14 +25,20 @@ public:
 
     //TODO should default-constructed instance throw when accessors are called?
     ::std::size_t size() const { return (buffer_) ? buffer_->size() : 0u; }
+
+    //TODO should get_view() throw on empty buffer_ or return empty string_view?
     ::boost::string_view get_view() const
     {
-        if (!buffer_) { throw ::std::runtime_error("empty basic_shared_buffer"); }
-        return ::boost::string_view(&(*buffer_)[0], buffer_->size());
+        return ::boost::string_view(
+                (buffer_) ? &(*buffer_)[0] : nullptr,
+                (buffer_) ? buffer_->size() : 0u);
+//        if (!buffer_) { throw ::std::runtime_error("empty basic_shared_buffer"); }
+//        return ::boost::string_view(&(*buffer_)[0], buffer_->size());
     }
 
     ::boost::string_view get_view(::std::size_t pos, ::std::size_t len) const
     {
+//        return ::boost::string_view((buffer_) ? &(*buffer_)[0] + pos : nullptr, (buffer_) ? len : 0u);
         if (!buffer_) { throw ::std::runtime_error("empty basic_shared_buffer"); }
         return ::boost::string_view(&(*buffer_)[0] + pos, len);
     }

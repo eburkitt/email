@@ -27,7 +27,7 @@ class message
 {
 public:
     //ctor for existing off-the-wire message
-    explicit message(::std::string content);    //assumed to be valid email message; throws if it isn't
+    explicit message(::std::string const &content);    //assumed to be valid email message; throws if it isn't
     //ctor for creating message from parts
     message(header header, body body);
 
@@ -41,7 +41,6 @@ public:
 
 private:
 	::std::shared_ptr<entity> e_;
-	::els::util::shared_buffer buffer_;
 };
 
 //email message, as well as body component of a multi-part message
@@ -64,17 +63,24 @@ private:
 };
 
 //header field
+//TODO how to implement an empty field? What holds name?
 class field
 {
 public:
-	//ctors??
+    //view ctors
+    field(::boost::string_view name);
+    field(::boost::string_view name, ::boost::string_view value,
+          ::els::util::shared_buffer buffer);
+
     ::boost::string_view name() const;
     ::boost::string_view value() const;
+
+    bool empty() const;
 
 private:
 	::boost::string_view name_;
 	::boost::string_view value_;
-	::std::string buffer_;
+    ::els::util::shared_buffer buffer_;
 };
 
 //collection of header fields
