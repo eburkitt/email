@@ -94,7 +94,7 @@ public:
     //view ctor
     header(::boost::string_view content, ::els::util::shared_buffer buffer);
 
-	//return single named field; first if there are multiple w/ same name
+	//return single unfolded, named field; first if there are multiple w/ same name
 	::std::string operator[](char const *name) const;
 	::std::string operator[](::std::string name) const;
 	::std::string operator[](::boost::string_view name) const;
@@ -102,7 +102,7 @@ public:
 	class field field(char const *name) const;
 	class field field(::std::string name) const;
 	class field field(boost::string_view name) const;
-	//return collection of all named fields
+	//return collection of all fields named 'name'
 	fields_t fields(char const *name) const;
     fields_t fields(::std::string name) const;
     fields_t fields(boost::string_view name) const;
