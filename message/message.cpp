@@ -8,21 +8,18 @@
 els::email::message::message(::std::string const &content)
 {
     ::els::util::shared_buffer b(content);
-    //NB - make_shared() as parameter to swap() makes CLion's editor complain
-    //"expression must be an lvalue"
-    auto x = ::std::make_shared<entity>(b.get_view(), b);
-    e_.swap(x);
+	e_ = ::std::move(entity(b.get_view(), ::std::move(b)));
 }
 
-els::email::message::message(els::email::header header, els::email::body body)
-	: e_(::std::make_shared<els::email::entity>(header, body))
+els::email::message::message(header header, body body)
+: e_(::std::move(header), ::std::move(body))
 {
 	//complete
 }
 
 /*===================================entity===================================*/
-els::email::entity::entity(::boost::string_view content, ::els::util::shared_buffer buffer)
-: buffer_(buffer)
+els::email::entity::entity(::boost::string_view const &content, ::els::util::shared_buffer buffer)
+: buffer_(std::move(buffer))
 {
 	static const char const * BLANK_LINE = "\r\n\r\n";
 	auto blank = content.find(BLANK_LINE);
@@ -39,12 +36,43 @@ els::email::entity::entity(::boost::string_view content, ::els::util::shared_buf
 	}	//if
 }
 
+els::email::entity::entity(header header, body body)
+: h_(::std::move(header))
+, b_(::std::move(body))
+{
+	//complete; buffer_ is not used
+}
+
+els::email::entity::entity(header header)
+: h_(::std::move(header))
+{
+	//complete; b_ is empty, buffer_ is not used
+}
+
+els::email::entity::entity(body body)
+: b_(::std::move(body))
+{
+	//complete; h_ is empty, buffer_ is not used
+}
+
 /*===================================field====================================*/
+els::email::field::field(char const *name)
+{
+	buffer_ = ::std::move(::els::utils::shared_buffer(name, ::std::strlen(name)));
+	name_ = ::std::move(buffer_.get_view());
+}
+
+els::email::field::field(::std::string const &name)
+{
+	buffer_ = ::std::move(::els::utils::shared_buffer(name));
+	name_ = ::std::move(buffer_.get_view());
+}
+
 els::email::field::field(::boost::string_view name, ::boost::string_view value,
                          ::els::util::shared_buffer buffer)
-: name_(name)
-, value_(value)
-, buffer_(buffer)
+: name_(::std::move(name))
+, value_(::std::move(value))
+, buffer_(::std::move(buffer))
 {
     //complete
 }
@@ -70,13 +98,13 @@ els::email::header::header()
 	//complete
 }
 
-els::email::header::header(::boost::string_view content, ::els::util::shared_buffer buffer)
+els::email::header::header(::boost::string_view const &content, ::els::util::shared_buffer const &buffer)
 {
 }
 
 /*====================================body====================================*/
-els::email::body::body(::boost::string_view content, ::els::util::shared_buffer buffer)
-: buffer_(buffer)
+els::email::body::body(::boost::string_view const &content, ::els::util::shared_buffer buffer)
+: buffer_(::std::move(buffer))
 {
 
 }

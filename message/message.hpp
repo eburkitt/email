@@ -36,39 +36,48 @@ public:
     ::boost::string_view from() const;
     ::boost::string_view subject() const;
 
-	header const &header() const { return e_->header(); }
-	body const &body() const { return e_->body(); }
+	header const &header() const { return e_.header(); }
+	body const &body() const { return e_.body(); }
 
 private:
-	::std::shared_ptr<entity> e_;
+	entity e_;
 };
 
 //email message, as well as body component of a multi-part message
 class entity
 {
 public:
+	//default ctor; produces empty entity, suitable for assignment to
+	entity();
     //view ctor
-    entity(::boost::string_view content, ::els::util::shared_buffer buffer);
+    entity(::boost::string_view const &content, ::els::util::shared_buffer buffer);
     entity(header header, body body);
-    explicit entity(header header);
-    explicit entity(body body);
+    explicit entity(header header);	//just a header; no body
+    explicit entity(body body);		//just a body; no header
 
     header const &header() const { return h_; }
     body const &body() const { return b_; }
 
+	//Note to dumbass:
+	//?? to_string() const <- return stringish thing made from buffer_
+	//if buffer_ is !empty, otherwise made from h_.to_string() +
+	//b_.to_string()
+
 private:
+
 	class header h_;
 	class body b_;
     ::els::util::shared_buffer buffer_;
 };
 
 //header field
-//TODO how to implement an empty field? What holds name?
 class field
 {
 public:
     //view ctors
-    field(::boost::string_view name);
+	//TODO: what about null char const* param?
+    explicit field(char const *name);			//only name param == empty field
+	explicit field(::std::string const &name);
     field(::boost::string_view name, ::boost::string_view value,
           ::els::util::shared_buffer buffer);
 
@@ -84,28 +93,38 @@ private:
 };
 
 //collection of header fields
+//Re adding fields to header: consider keeping added fields in a separate collection
+//and, in header.to_string(), calling their to_string() members before incorporating buffer_.
+//This idea requires header to keep its own copy of buffer it receives in ctor(s) with
+//a shared_buffer param. This will prepend added headers to existing ones, which is, I
+//think, recommended practice
 class header
 {
 public:
 	using fields_t = ::std::vector<field>;
-    //default ctor; produces empty header
+    //default ctor; produces empty header, suitable for assignment to
     header();
     //TODO: ctor taking fields, or vector or map of name/values
     //view ctor
-    header(::boost::string_view content, ::els::util::shared_buffer buffer);
+    header(::boost::string_view const &content, ::els::util::shared_buffer const &buffer);
 
-	//return single unfolded, named field; first if there are multiple w/ same name
+	//return single named field's value, unfolded; first if there are multiple w/ same name
+	//TODO: what about null char const* param?
 	::std::string operator[](char const *name) const;
-	::std::string operator[](::std::string name) const;
-	::std::string operator[](::boost::string_view name) const;
+	::std::string operator[](::std::string const &name) const;
+	::std::string operator[](::boost::string_view const &name) const;
 
+	//return single named field with a raw value; first if there are multiple w/ same name
+	//TODO: what about null char const* param?
 	class field field(char const *name) const;
-	class field field(::std::string name) const;
-	class field field(boost::string_view name) const;
+	class field field(::std::string const &name) const;
+	class field field(::boost::string_view const &name) const;
+
 	//return collection of all fields named 'name'
+	//TODO: what about null char const* param?
 	fields_t fields(char const *name) const;
-    fields_t fields(::std::string name) const;
-    fields_t fields(boost::string_view name) const;
+    fields_t fields(::std::string const &name) const;
+    fields_t fields(::boost::string_view const &name) const;
 
 private:
     using fields_p_t = ::std::shared_ptr<fields_t>;
@@ -118,22 +137,22 @@ class body
 {
 public:
     using entities_t = ::std::vector<entity>;
-    //default ctor; produces empty body
+    //default ctor; produces empty body, suitable for assignment to
     body();
     //view ctor
-	body(::boost::string_view content, ::els::util::shared_buffer buffer);
+	body(::boost::string_view const &content, ::els::util::shared_buffer buffer);
     //from-content ctor
-    explicit body(::std::string content);
+    explicit body(::std::string const &content);
 
     //construct specific body types from supplied data
-    static body octet_stream(octets_t data, content_transfer_encoding cte);
+    static body octet_stream(octets_t const &data, content_transfer_encoding cte);
     //text() will always use subtype "plain"
-    static body text(::std::string data /*,char encoding, content transfer encoding*/);
+    static body text(::std::string const &data /*,char encoding, content transfer encoding*/);
     //all following will be base64 encoded
-    static body image(octets_t data, ::std::string subtype);
-    static body audio(octets_t data, ::std::string subtype);
-    static body video(octets_t data, ::std::string subtype);
-    static body application(octets_t data, ::std::string subtype);
+    static body image(octets_t const &data, ::std::string const &subtype);
+    static body audio(octets_t const &data, ::std::string const &subtype);
+    static body video(octets_t const &data, ::std::string const &subtype);
+    static body application(octets_t const &data, ::std::string const &subtype);
 
 private:
     using entities_p_t = ::std::shared_ptr<entities_t>;
