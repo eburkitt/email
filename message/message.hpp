@@ -58,6 +58,16 @@ public:
     header const &header() const { return h_; }
     body const &body() const { return b_; }
 
+	//construct specific entity types from supplied data
+	static entity octet_stream(octets_t const &data, content_transfer_encoding cte);
+	//text() will always use subtype "plain"
+	static entity text(::std::string const &data /*,char encoding, content transfer encoding*/);
+	//all following will be base64 encoded
+	static entity image(octets_t const &data, ::std::string const &subtype);
+	static entity audio(octets_t const &data, ::std::string const &subtype);
+	static entity video(octets_t const &data, ::std::string const &subtype);
+	static entity application(octets_t const &data, ::std::string const &subtype);
+
 	//Note to dumbass:
 	//?? to_string() const <- return stringish thing made from buffer_
 	//if buffer_ is !empty, otherwise made from h_.to_string() +
@@ -78,6 +88,7 @@ public:
 	//TODO: what about null char const* param?
     explicit field(char const *name);			//only name param == empty field
 	explicit field(::std::string const &name);
+	explicit field(::boost::string_view const &name);
     field(::boost::string_view name, ::boost::string_view value,
           ::els::util::shared_buffer buffer);
 
@@ -129,6 +140,7 @@ public:
 private:
     using fields_p_t = ::std::shared_ptr<fields_t>;
 	fields_p_t fields_;
+    ::els::util::shared_buffer buffer_;
 };
 
 //collection of multi-part message parts, or body of non-multi-part message
@@ -143,16 +155,6 @@ public:
 	body(::boost::string_view const &content, ::els::util::shared_buffer buffer);
     //from-content ctor
     explicit body(::std::string const &content);
-
-    //construct specific body types from supplied data
-    static body octet_stream(octets_t const &data, content_transfer_encoding cte);
-    //text() will always use subtype "plain"
-    static body text(::std::string const &data /*,char encoding, content transfer encoding*/);
-    //all following will be base64 encoded
-    static body image(octets_t const &data, ::std::string const &subtype);
-    static body audio(octets_t const &data, ::std::string const &subtype);
-    static body video(octets_t const &data, ::std::string const &subtype);
-    static body application(octets_t const &data, ::std::string const &subtype);
 
 private:
     using entities_p_t = ::std::shared_ptr<entities_t>;

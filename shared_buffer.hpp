@@ -19,6 +19,8 @@ public:
     basic_shared_buffer() {}
     explicit basic_shared_buffer(::std::string const &s)
             : buffer_(::std::make_shared<buffer_t>(s.cbegin(), s.cend())) {}
+    basic_shared_buffer(boost::string_view const &sv)
+            : buffer_(::std::make_shared(sv.cbegin(), sv.cend())) {}
     //TODO ctor taking pointer should check it for null
     basic_shared_buffer(CharT const *c, ::std::size_t len)
             : buffer_(::std::make_shared(c, c + len)) {}

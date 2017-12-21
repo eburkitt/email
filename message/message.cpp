@@ -68,6 +68,12 @@ els::email::field::field(::std::string const &name)
 	name_ = ::std::move(buffer_.get_view());
 }
 
+els::email::field::field(::boost::string_view const &name)
+{
+	buffer_ = ::std::move(::els::utils::shared_buffer(name));
+	name_ = ::std::move(buffer_.get_view());
+}
+
 els::email::field::field(::boost::string_view name, ::boost::string_view value,
                          ::els::util::shared_buffer buffer)
 : name_(::std::move(name))
